@@ -143,10 +143,3 @@ if st.button('Önerileri Sırala'):
     else:
         st.warning("Eşleşen sonuç bulunamadı.")
 
-# --- ALT BİLGİ ---
-st.write("---")
-st.markdown("<p style='text-align: center; color: #888;'>Bu proje bir yapay zeka öğrenme çalışmasıdır. Veriler TMDB üzerinden çekilmektedir.</p>", unsafe_allow_html=True)
-                st.image(posters[idx], use_container_width=True)
-    else:
-        st.warning("Aradığınız kriterlerde uygun film bulunamadı.")
-
