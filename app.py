@@ -8,15 +8,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 # --- SAYFA AYARLARI ---
 st.set_page_config(page_title="MovAi - Film Rehberi", layout="wide")
 
-# --- TASARIM (CSS) ---
+# --- TASARIM (Sade ve Okunaklı) ---
 st.markdown("""
     <style>
     .stApp { background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%); color: white; }
     h1 { color: #00FFFF !important; text-align: center; font-family: 'Arial Black'; font-size: 3rem !important; }
-    .film-baslik { color: #FFFFFF !important; font-size: 18px !important; font-weight: 800 !important; text-align: center; min-height: 55px; line-height: 1.2; font-family: 'Segoe UI'; }
-    .stTabs [data-baseweb="tab-list"] { gap: 24px; justify-content: center; }
-    .stTabs [data-baseweb="tab"] { color: #00FFFF !important; font-size: 20px; font-weight: bold; }
-    div.stButton > button { background-color: #008B8B; color: white; border: 2px solid #00FFFF; border-radius: 10px; width: 100%; height: 3rem; }
+    .film-baslik { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold; text-align: center; min-height: 50px; line-height: 1.2; }
+    div.stButton > button { background-color: #008B8B; color: white; border: 2px solid #00FFFF; border-radius: 10px; width: 100%; height: 3.5rem; font-size: 1.2rem; }
     div.stButton > button:hover { background-color: #00FFFF; color: black; }
     </style>
     """, unsafe_allow_html=True)
@@ -30,9 +28,9 @@ cv = CountVectorizer(max_features=5000, stop_words='english')
 vectors = cv.fit_transform(movies['tags']).toarray()
 similarity = cosine_similarity(vectors)
 
-# 3. Poster Çekme
+# 3. Poster Çekme Fonksiyonu
 def fetch_poster(movie_id):
-    api_key = "71688304490ebfafbeb6e454a722ebc4" # Burayı doldurmayı unutma
+    api_key = "71688304490ebfafbeb6e454a722ebc4" 
     try:
         url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=tr-TR"
         data = requests.get(url).json()
@@ -42,36 +40,29 @@ def fetch_poster(movie_id):
         return "https://via.placeholder.com/500x750/1B2735/00FFFF/?text=Resim+Yok"
 
 # --- ARAYÜZ ---
-st.title('🚀 MovAi: Akıllı Film Rehberi')
+st.title('🚀 MovAi: Sonsuz Film Keşfi')
 
-# SEKME SİSTEMİ: İkisinden biri seçilebilsin diye ayırıyoruz
-tab1, tab2 = st.tabs(["🔍 Filme Benzer Öner", "📂 Kategoriye Göre Keşfet"])
+selected_movie = st.selectbox('Benzerlerini bulmak istediğin filmi seç:', movies['title'].values)
 
-with tab1:
-    selected_movie = st.selectbox('Öneri almak istediğin ana filmi seç:', movies['title'].values)
-    if st.button('Benzerlerini Bul'):
-        movie_index = movies[movies['title'].str.lower() == selected_movie.lower()].index[0]
-        distances = similarity[movie_index]
-        movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
-        
-        cols = st.columns(5)
-        for idx, col in enumerate(cols):
-            with col:
-                st.markdown(f"<div class='film-baslik'>{movies.iloc[movies_list[idx][0]].title}</div>", unsafe_allow_html=True)
-                st.image(fetch_poster(movies.iloc[movies_list[idx][0]].movie_id), use_container_width=True)
-
-with tab2:
-    kategoriler = {"Aksiyon": "action", "Macera": "adventure", "Komedi": "comedy", "Korku": "horror", "Bilim Kurgu": "science fiction", "Dram": "drama"}
-    selected_genre = st.selectbox('Hangi türde film istersin?', list(kategoriler.keys()))
+if st.button('Tüm Benzer Filmleri Getir'):
+    movie_index = movies[movies['title'].str.lower() == selected_movie.lower()].index[0]
+    distances = similarity[movie_index]
     
-    if st.button('Türün En İyilerini Getir'):
-        eng_genre = kategoriler[selected_genre]
-        # Kategoriye göre basit bir filtreleme
-        genre_movies = movies[movies['tags'].str.contains(eng_genre)].head(5)
-        
+    # Benzerlik oranına göre sıralayıp ilk 20 filmi alıyoruz (Sayfa hızı için 20 idealdir)
+    movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:21]
+    
+    st.write(f"### 🌌 '{selected_movie}' filmine benzer en iyi sonuçlar:")
+    st.write("---")
+    
+    # Filmleri 5'li sıralar halinde diziyoruz
+    for i in range(0, len(movies_list), 5):
         cols = st.columns(5)
-        for idx, col in enumerate(cols):
-            with col:
-                st.markdown(f"<div class='film-baslik'>{genre_movies.iloc[idx].title}</div>", unsafe_allow_html=True)
-                st.image(fetch_poster(genre_movies.iloc[idx].movie_id), use_container_width=True)
+        for j in range(5):
+            if i + j < len(movies_list):
+                idx = movies_list[i + j][0]
+                with cols[j]:
+                    st.markdown(f"<div class='film-baslik'>{movies.iloc[idx].title}</div>", unsafe_allow_html=True)
+                    st.image(fetch_poster(movies.iloc[idx].movie_id), use_container_width=True)
 
+st.write("---")
+st.markdown("<p style='text-align: center; color: #888;'>MovAi - Yapay Zeka Destekli Film Öneri Sistemi</p>", unsafe_allow_html=True)
