@@ -83,7 +83,7 @@ if st.button('Tüm Benzer Filmleri Getir'):
     # Sayfa hızı için en benzer 20 filmi alıyoruz
     movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:21]
     
-    st.write(f"### 🌌 '{selected_movie}' İçin Keşfedilen Galaksiler:")
+    st.write(f"### 🌌 '{selected_movie}' İçin Benzer Öneriler:")
     st.write("---")
     
     # 5'li Izgara Yapısı
@@ -99,3 +99,4 @@ if st.button('Tüm Benzer Filmleri Getir'):
 
 st.write("---")
 st.markdown("<p style='text-align: center; color: #888;'>MovAi - Yapay Zeka Destekli Film Öneri Sistemi</p>", unsafe_allow_html=True)
+
