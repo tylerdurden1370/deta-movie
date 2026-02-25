@@ -32,8 +32,7 @@ similarity = cosine_similarity(vectors)
 
 # 3. Poster Çekme
 def fetch_poster(movie_id):
-    api_key = "71688304490ebfafbeb6e454a722ebc4
-" # Burayı doldurmayı unutma
+    api_key = "71688304490ebfafbeb6e454a722ebc4" # Burayı doldurmayı unutma
     try:
         url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=tr-TR"
         data = requests.get(url).json()
@@ -75,3 +74,4 @@ with tab2:
             with col:
                 st.markdown(f"<div class='film-baslik'>{genre_movies.iloc[idx].title}</div>", unsafe_allow_html=True)
                 st.image(fetch_poster(genre_movies.iloc[idx].movie_id), use_container_width=True)
+
