@@ -6,37 +6,61 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # --- SAYFA AYARLARI ---
-st.set_page_config(page_title="MovAi - Film Keşfi", layout="wide")
+st.set_page_config(page_title="MovAi - Film Rehberi", layout="wide")
 
-# --- TASARIM (CSS) ---
+# --- TASARIM (CSS) - Neon Etkisi Kaldırıldı ve Yazılar Büyütüldü ---
 st.markdown("""
     <style>
     .stApp {
         background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
         color: white;
     }
+    
+    /* Başlık: Neon kaldırıldı, daha net ve büyük */
     h1 {
         color: #00FFFF !important;
-        text-shadow: 0 0 15px #00FFFF;
         text-align: center;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Arial Black', Gadget, sans-serif;
+        font-size: 3rem !important;
+        padding-bottom: 20px;
     }
+    
+    /* Seçim kutusu etiketleri */
     .stSelectbox label {
         color: #00FFFF !important;
         font-weight: bold;
+        font-size: 1.1rem;
     }
+    
+    /* Film İsimleri: Afişlerin üzerindeki metni büyütüp kalınlaştırdık */
+    .film-baslik {
+        color: #FFFFFF !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        text-align: center;
+        min-height: 55px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.2;
+        margin-bottom: 5px;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Buton Tasarımı */
     div.stButton > button:first-child {
         background-color: #008B8B;
         color: white;
         border: 2px solid #00FFFF;
-        border-radius: 30px;
+        border-radius: 10px;
         font-weight: bold;
         width: 100%;
+        height: 3.5rem;
     }
+    
     div.stButton > button:first-child:hover {
         background-color: #00FFFF;
         color: black;
-        box-shadow: 0 0 30px #00FFFF;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -50,18 +74,18 @@ cv = CountVectorizer(max_features=5000, stop_words='english')
 vectors = cv.fit_transform(movies['tags']).toarray()
 similarity = cosine_similarity(vectors)
 
-# 3. TMDB API Poster Çekme
+# 3. Poster Çekme Fonksiyonu
 def fetch_poster(movie_id):
-    api_key = "71688304490ebfafbeb6e454a722ebc4" # Buraya kendi anahtarını yapıştır
+    api_key = "71688304490ebfafbeb6e454a722ebc4" # Kendi anahtarını buraya koymayı unutma
     try:
         url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=tr-TR"
         data = requests.get(url).json()
         poster_path = data['poster_path']
         return "https://image.tmdb.org/t/p/w500/" + poster_path
     except:
-        return "https://via.placeholder.com/500x750/000000/00FFFF/?text=Afiş+Yok"
+        return "https://via.placeholder.com/500x750/1B2735/00FFFF/?text=Resim+Yok"
 
-# 4. Kategori Sözlüğü (Türkçe -> İngilizce Tag Eşleşmesi)
+# 4. Kategori Sözlüğü
 kategori_sozlugu = {
     "Tümü": "Tümü",
     "Aksiyon": "action",
@@ -82,53 +106,47 @@ def recommend(movie, tr_genre):
         distances = similarity[movie_index]
         movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])
         
-        recommended_movies = []
-        recommended_movie_posters = []
-        
+        rec_names = []
+        rec_posters = []
         eng_genre = kategori_sozlugu[tr_genre]
         
         for i in movies_list[1:]:
             current_tags = movies.iloc[i[0]].tags.lower()
-            
             if eng_genre == "Tümü" or eng_genre in current_tags:
-                recommended_movies.append(movies.iloc[i[0]].title)
-                recommended_movie_posters.append(fetch_poster(movies.iloc[i[0]].movie_id))
-            
-            if len(recommended_movies) == 5:
-                break
-                
-        return recommended_movies, recommended_movie_posters
+                rec_names.append(movies.iloc[i[0]].title)
+                rec_posters.append(fetch_poster(movies.iloc[i[0]].movie_id))
+            if len(rec_names) == 5: break
+        return rec_names, rec_posters
     except:
         return [], []
 
-# --- WEB ARAYÜZÜ ---
+# --- ARAYÜZ ---
 st.title('🚀 MovAi: Akıllı Film Rehberi')
 
-col1, col2 = st.columns(2)
+c1, c2 = st.columns(2)
+with c1:
+    selected_movie = st.selectbox('Benzerini bulmak istediğin film:', movies['title'].values)
+with c2:
+    selected_genre = st.selectbox('Kategori seç (Opsiyonel):', list(kategori_sozlugu.keys()))
 
-with col1:
-    selected_movie_name = st.selectbox(
-        'Hangi filme benzer öneriler istersin?',
-        movies['title'].values
-    )
-
-with col2:
-    secilen_kategori = st.selectbox(
-        'Bir tür seçmek ister misin?',
-        list(kategori_sozlugu.keys())
-    )
-
-st.write("---")
-
-if st.button('Önerileri Getir'):
-    names, posters = recommend(selected_movie_name, secilen_kategori)
+if st.button('Önerileri Sırala'):
+    names, posters = recommend(selected_movie, selected_genre)
     
     if names:
-        st.write(f"### 🌌 {secilen_kategori} Kategorisindeki Öneriler:")
+        st.write("---")
         cols = st.columns(5)
         for idx, col in enumerate(cols):
             with col:
-                st.markdown(f"<p style='color:#00FFFF; font-size:14px; font-weight:bold; min-height:45px;'>{names[idx]}</p>", unsafe_allow_html=True)
+                # Film ismini büyük ve okunaklı hale getiren özel sınıf
+                st.markdown(f"<div class='film-baslik'>{names[idx]}</div>", unsafe_allow_html=True)
+                st.image(posters[idx], use_container_width=True)
+    else:
+        st.warning("Eşleşen sonuç bulunamadı.")
+
+# --- ALT BİLGİ ---
+st.write("---")
+st.markdown("<p style='text-align: center; color: #888;'>Bu proje bir yapay zeka öğrenme çalışmasıdır. Veriler TMDB üzerinden çekilmektedir.</p>", unsafe_allow_html=True)
                 st.image(posters[idx], use_container_width=True)
     else:
         st.warning("Aradığınız kriterlerde uygun film bulunamadı.")
+
