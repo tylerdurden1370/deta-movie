@@ -8,14 +8,46 @@ from sklearn.metrics.pairwise import cosine_similarity
 # --- SAYFA AYARLARI ---
 st.set_page_config(page_title="MovAi - Film Rehberi", layout="wide")
 
-# --- TASARIM (Sade ve Okunaklı) ---
+# --- TASARIM GÜNCELLEMESİ (Hizalama ve Boşluklar) ---
 st.markdown("""
     <style>
     .stApp { background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%); color: white; }
-    h1 { color: #00FFFF !important; text-align: center; font-family: 'Arial Black'; font-size: 3rem !important; }
-    .film-baslik { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold; text-align: center; min-height: 50px; line-height: 1.2; }
-    div.stButton > button { background-color: #008B8B; color: white; border: 2px solid #00FFFF; border-radius: 10px; width: 100%; height: 3.5rem; font-size: 1.2rem; }
-    div.stButton > button:hover { background-color: #00FFFF; color: black; }
+    h1 { color: #00FFFF !important; text-align: center; font-family: 'Arial Black'; font-size: 3rem !important; margin-bottom: 30px; }
+    
+    /* Film Başlığı: Afişin tam üstünde, büyük ve boşluklu */
+    .film-baslik { 
+        color: #00FFFF !important; 
+        font-size: 16px !important; 
+        font-weight: bold; 
+        text-align: center; 
+        padding: 10px 5px; /* Yazının etrafına iç boşluk */
+        min-height: 65px; /* Uzun isimler için sabit yükseklik */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.3;
+        background: rgba(0, 255, 255, 0.05); /* Çok hafif bir arka plan ki isimler belirginleşsin */
+        border-radius: 10px 10px 0 0; /* Üst köşeleri yuvarla */
+        margin-bottom: 5px; /* Afişle arasına boşluk */
+    }
+    
+    /* Afişlerin etrafına biraz nefes aldıracak boşluk */
+    .stImage {
+        margin-bottom: 30px; /* Bir sonraki satırdaki isimle arasına boşluk */
+        border-radius: 0 0 10px 10px;
+    }
+
+    div.stButton > button { 
+        background-color: #008B8B; 
+        color: white; 
+        border: 2px solid #00FFFF; 
+        border-radius: 10px; 
+        width: 100%; 
+        height: 3.5rem; 
+        font-size: 1.2rem;
+        margin-top: 20px;
+    }
+    div.stButton > button:hover { background-color: #00FFFF; color: black; box-shadow: 0 0 15px #00FFFF; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -48,19 +80,20 @@ if st.button('Tüm Benzer Filmleri Getir'):
     movie_index = movies[movies['title'].str.lower() == selected_movie.lower()].index[0]
     distances = similarity[movie_index]
     
-    # Benzerlik oranına göre sıralayıp ilk 20 filmi alıyoruz (Sayfa hızı için 20 idealdir)
+    # Sayfa hızı için en benzer 20 filmi alıyoruz
     movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:21]
     
-    st.write(f"### 🌌 '{selected_movie}' filmine benzer en iyi sonuçlar:")
+    st.write(f"### 🌌 '{selected_movie}' İçin Keşfedilen Galaksiler:")
     st.write("---")
     
-    # Filmleri 5'li sıralar halinde diziyoruz
+    # 5'li Izgara Yapısı
     for i in range(0, len(movies_list), 5):
         cols = st.columns(5)
         for j in range(5):
             if i + j < len(movies_list):
                 idx = movies_list[i + j][0]
                 with cols[j]:
+                    # İsim ve Afiş
                     st.markdown(f"<div class='film-baslik'>{movies.iloc[idx].title}</div>", unsafe_allow_html=True)
                     st.image(fetch_poster(movies.iloc[idx].movie_id), use_container_width=True)
 
