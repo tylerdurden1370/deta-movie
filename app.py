@@ -62,14 +62,14 @@ similarity = cosine_similarity(vectors)
 
 # 3. Poster Çekme Fonksiyonu
 def fetch_poster(movie_id):
-    api_key = "71688304490ebfafbeb6e454a722ebc4" 
-    try:
-        url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=tr-TR"
-        data = requests.get(url).json()
-        poster_path = data['poster_path']
-        return "https://image.tmdb.org/t/p/w500/" + poster_path
-    except:
-        return "https://via.placeholder.com/500x750/1B2735/00FFFF/?text=Resim+Yok"
+    api_key = "71688304490ebfafbeb6e454a722ebc4"
+    try:
+        url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=tr-TR"
+        data = requests.get(url).json()
+        poster_path = data['poster_path']
+        return "https://image.tmdb.org/t/p/w500/" + poster_path
+    except:
+        return "https://via.placeholder.com/500x750/1B2735/00FFFF/?text=Resim+Yok"
 
 # --- ARAYÜZ ---
 st.title('🚀 MovAi: Sonsuz Film Keşfi')
@@ -102,3 +102,4 @@ st.markdown("<p style='text-align: center; color: #888;'>MovAi - Yapay Zeka Dest
 
 
 kodumuzun son hali buydu buna ekleyip vericeksin
+
